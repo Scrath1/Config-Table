@@ -1,2 +1,6 @@
 .vscode/
-.pio/
+.cache
+build
+.idea/
+
+cmake-build-debug/
