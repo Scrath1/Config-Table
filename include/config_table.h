@@ -53,7 +53,7 @@ int32_t config_getIdxFromKey(const ConfigTable_t* cfg, const char* key);
  * @return CFG_RC_ERROR_NULLPTR if cfg or key are NULL
  * @return CFG_RC_ERROR_UNKNOWN_KEY if no matching key was found
  */
-CfgRet_t config_getByKey(const ConfigTable_t* cfg, const char* key, ConfigEntry_t* entry);
+CfgRet_t config_getByKey(const ConfigTable_t* cfg, const char* key, ConfigEntry_t** const entry);
 
 /**
  * Returns a configuration entry for the given index
@@ -65,7 +65,7 @@ CfgRet_t config_getByKey(const ConfigTable_t* cfg, const char* key, ConfigEntry_
  * @return CFG_RC_ERROR_RANGE if the given index was larger than the
  *  number of entries in the configuration table
  */
-CfgRet_t config_getByIdx(const ConfigTable_t* cfg, uint32_t idx, ConfigEntry_t* entry);
+CfgRet_t config_getByIdx(const ConfigTable_t* cfg, uint32_t idx, ConfigEntry_t** const entry);
 
 /**
  * Sets a configuration entry value based on the given key

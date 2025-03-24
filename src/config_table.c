@@ -18,18 +18,18 @@ int32_t config_getIdxFromKey(const ConfigTable_t* cfg, const char* key) {
     return -1;
 }
 
-CfgRet_t config_getByKey(const ConfigTable_t* cfg, const char* key, ConfigEntry_t* entry) {
+CfgRet_t config_getByKey(const ConfigTable_t* cfg, const char* key, ConfigEntry_t** const entry) {
     if(cfg == NULL || key == NULL) return CFG_RC_ERROR_NULLPTR;
     const int32_t idx = config_getIdxFromKey(cfg, key);
     if(idx < 0) return CFG_RC_ERROR_UNKNOWN_KEY;
 
     return config_getByIdx(cfg, idx, entry);
 }
-CfgRet_t config_getByIdx(const ConfigTable_t* cfg, uint32_t idx, ConfigEntry_t* entry) {
+CfgRet_t config_getByIdx(const ConfigTable_t* cfg, uint32_t idx, ConfigEntry_t** const entry) {
     if(cfg == NULL) return CFG_RC_ERROR_NULLPTR;
     if(idx >= cfg->count) return CFG_RC_ERROR_RANGE;
 
-    entry = &(cfg->entries[idx]);
+    *entry = &(cfg->entries[idx]);
 
     return CFG_RC_SUCCESS;
 }
