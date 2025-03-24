@@ -128,3 +128,113 @@ CfgRet_t config_parseKVStr(ConfigTable_t* cfg, char* str, uint32_t len) {
     }
     return CFG_RC_SUCCESS;
 }
+
+/**
+ * Type specific getter and setter functions
+ * ===================================================================
+ */
+
+CfgRet_t config_getUint32ByKey(const ConfigTable_t* cfg, const char* key, uint32_t* value) {
+    ConfigEntry_t* entry_ptr;
+    CfgRet_t ret = config_getByKey(cfg, key, &entry_ptr);
+    if(CFG_RC_SUCCESS != ret) return ret;
+
+    // Check for possible type mismatch
+    if(entry_ptr->type != CONFIG_UINT32) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((uint32_t*)entry_ptr->value);
+    return CFG_RC_SUCCESS;
+}
+CfgRet_t config_getUint32ByIdx(const ConfigTable_t* cfg, uint32_t idx, uint32_t* value) {
+    ConfigEntry_t* entry_ptr;
+    CfgRet_t ret = config_getByIdx(cfg, idx, &entry_ptr);
+    if(CFG_RC_SUCCESS != ret) return ret;
+
+    // Check for possible type mismatch
+    if(entry_ptr->type != CONFIG_UINT32) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((uint32_t*)entry_ptr->value);
+    return CFG_RC_SUCCESS;
+}
+
+CfgRet_t config_getInt32ByKey(const ConfigTable_t* cfg, const char* key, int32_t* value) {
+    ConfigEntry_t* entry_ptr;
+    CfgRet_t ret = config_getByKey(cfg, key, &entry_ptr);
+    if(CFG_RC_SUCCESS != ret) return ret;
+
+    // Check for possible type mismatch
+    if(entry_ptr->type != CONFIG_INT32) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((int32_t*)entry_ptr->value);
+    return CFG_RC_SUCCESS;
+}
+CfgRet_t config_getInt32ByIdx(const ConfigTable_t* cfg, uint32_t idx, int32_t* value) {
+    ConfigEntry_t* entry_ptr;
+    CfgRet_t ret = config_getByIdx(cfg, idx, &entry_ptr);
+    if(CFG_RC_SUCCESS != ret) return ret;
+
+    // Check for possible type mismatch
+    if(entry_ptr->type != CONFIG_INT32) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((int32_t*)entry_ptr->value);
+    return CFG_RC_SUCCESS;
+}
+
+CfgRet_t config_getFloatByKey(const ConfigTable_t* cfg, const char* key, float* value) {
+    ConfigEntry_t* entry_ptr;
+    CfgRet_t ret = config_getByKey(cfg, key, &entry_ptr);
+    if(CFG_RC_SUCCESS != ret) return ret;
+
+    // Check for possible type mismatch
+    if(entry_ptr->type != CONFIG_FLOAT) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((float*)entry_ptr->value);
+    return CFG_RC_SUCCESS;
+}
+CfgRet_t config_getFloatByIdx(const ConfigTable_t* cfg, uint32_t idx, float* value) {
+    ConfigEntry_t* entry_ptr;
+    CfgRet_t ret = config_getByIdx(cfg, idx, &entry_ptr);
+    if(CFG_RC_SUCCESS != ret) return ret;
+
+    // Check for possible type mismatch
+    if(entry_ptr->type != CONFIG_FLOAT) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((float*)entry_ptr->value);
+    return CFG_RC_SUCCESS;
+}
+
+CfgRet_t config_getStringByKey(const ConfigTable_t* cfg, const char* key, char** str) {
+    ConfigEntry_t* entry_ptr;
+    CfgRet_t ret = config_getByKey(cfg, key, &entry_ptr);
+    if(CFG_RC_SUCCESS != ret) return ret;
+
+    // Check for possible type mismatch
+    if(entry_ptr->type != CONFIG_STRING) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *str = (char*)entry_ptr->value;
+    return CFG_RC_SUCCESS;
+}
+CfgRet_t config_getStringByIdx(const ConfigTable_t* cfg, uint32_t idx, char** str) {
+    ConfigEntry_t* entry_ptr;
+    CfgRet_t ret = config_getByIdx(cfg, idx, &entry_ptr);
+    if(CFG_RC_SUCCESS != ret) return ret;
+
+    // Check for possible type mismatch
+    if(entry_ptr->type != CONFIG_STRING) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *str = (char*)entry_ptr->value;
+    return CFG_RC_SUCCESS;
+}
+
+CfgRet_t config_getBoolByKey(const ConfigTable_t* cfg, const char* key, bool* value) {
+    ConfigEntry_t* entry_ptr;
+    CfgRet_t ret = config_getByKey(cfg, key, &entry_ptr);
+    if(CFG_RC_SUCCESS != ret) return ret;
+
+    // Check for possible type mismatch
+    if(entry_ptr->type != CONFIG_BOOL) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((bool*)entry_ptr->value);
+    return CFG_RC_SUCCESS;
+}
+CfgRet_t config_getBoolByIdx(const ConfigTable_t* cfg, uint32_t idx, bool* value) {
+    ConfigEntry_t* entry_ptr;
+    CfgRet_t ret = config_getByIdx(cfg, idx, &entry_ptr);
+    if(CFG_RC_SUCCESS != ret) return ret;
+
+    // Check for possible type mismatch
+    if(entry_ptr->type != CONFIG_BOOL) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((bool*)entry_ptr->value);
+    return CFG_RC_SUCCESS;
+}

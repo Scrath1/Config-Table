@@ -118,5 +118,50 @@ TEST_F(Config_Table_Test, GenericSetterTest) {
     EXPECT_EQ('\0', static_cast<char*>(entry_ptr->value)[MAX_STRING_LEN / 2 - 1]);
 }
 
-// ToDo: Write specialized getters and setter for each type for faster access
+TEST_F(Config_Table_Test, SpecializedGetterTest) {
+    // uint
+    int32_t uint_idx = config_getIdxFromKey(&config_table, "uint32_t");
+    uint32_t uint = 0;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getUint32ByKey(&config_table, "uint32_t", &uint));
+    EXPECT_EQ(uint, UINT32_T_DEFAULT_VALUE);
+    uint = 0;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getUint32ByIdx(&config_table, uint_idx, &uint));
+    EXPECT_EQ(uint, UINT32_T_DEFAULT_VALUE);
+
+    // int
+    int32_t int_idx = config_getIdxFromKey(&config_table, "int32_t");
+    int32_t integer = 0;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getInt32ByKey(&config_table, "int32_t", &integer));
+    EXPECT_EQ(integer, INT32_T_DEFAULT_VALUE);
+    integer = 0;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getInt32ByIdx(&config_table, int_idx, &integer));
+    EXPECT_EQ(integer, INT32_T_DEFAULT_VALUE);
+
+    // float
+    int32_t float_idx = config_getIdxFromKey(&config_table, "float");
+    float f = 0;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getFloatByKey(&config_table, "float", &f));
+    EXPECT_NEAR(f, FLOAT_DEFAULT_VALUE, FLT_EPSILON);
+    f = 0;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getFloatByIdx(&config_table, float_idx, &f));
+    EXPECT_NEAR(f, FLOAT_DEFAULT_VALUE, FLT_EPSILON);
+
+    // string
+    int32_t string_idx = config_getIdxFromKey(&config_table, "string");
+    char* str = nullptr;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByKey(&config_table, "string", &str));
+    EXPECT_STREQ(str, STRING_DEFAULT_VALUE);
+    str = nullptr;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByIdx(&config_table, string_idx, &str));
+    EXPECT_STREQ(str, STRING_DEFAULT_VALUE);
+
+    int32_t bool_idx = config_getIdxFromKey(&config_table, "bool");
+    bool b = !BOOL_DEFAULT_VALUE;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getBoolByKey(&config_table, "bool", &b));
+    EXPECT_EQ(b, BOOL_DEFAULT_VALUE);
+    b = !BOOL_DEFAULT_VALUE;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getBoolByIdx(&config_table, bool_idx, &b));
+    EXPECT_EQ(b, BOOL_DEFAULT_VALUE);
+}
+
 // ToDo: Test key-value parsing
