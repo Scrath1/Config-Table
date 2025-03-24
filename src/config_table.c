@@ -52,11 +52,11 @@ CfgRet_t config_setByIdx(ConfigTable_t* cfg, uint32_t idx, const void* value, ui
 }
 
 CfgRet_t config_parseKVStr(ConfigTable_t* cfg, char* str, uint32_t len) {
-    if(cfg == NULL) return CFG_RC_ERROR_NULLPTR;
+    if(cfg == NULL || str == NULL) return CFG_RC_ERROR_NULLPTR;
     // First step, try to parse a key.
     // Find the index of the key-value separator
     char* value_str = strchr(str, KV_SEP_CHAR);
-    if(value_str == NULL) return CFG_RC_ERROR; // separator char not found
+    if(value_str == NULL) return CFG_RC_ERROR_FORMAT; // separator char not found
     uint32_t sep_idx = (uint32_t)(value_str-str);
     // advance by one to omit the separator char from value string
     value_str++;
@@ -89,20 +89,30 @@ CfgRet_t config_parseKVStr(ConfigTable_t* cfg, char* str, uint32_t len) {
     switch(entry->type) {
         default:
         case CONFIG_NONE:
-            return CFG_RC_ERROR;
+            return CFG_RC_ERROR_INVALID;
         case CONFIG_UINT32: {
+                if(value_str[0] == '-') return CFG_RC_ERROR;
                 const uint32_t tmp = strtoull(value_str, NULL, 10);
-                if(errno == ERANGE) return CFG_RC_ERROR;
+                if(errno == ERANGE) {
+                    errno = 0;
+                    return CFG_RC_ERROR;
+                }
                 return config_setByIdx(cfg, cfg_entry_idx, &tmp, sizeof(tmp));
             }
         case CONFIG_INT32: {
                 const int32_t tmp = strtol(value_str, NULL, 10);
-                if(errno == ERANGE) return CFG_RC_ERROR;
+                if(errno == ERANGE) {
+                    errno = 0;
+                    return CFG_RC_ERROR;
+                }
                 return config_setByIdx(cfg, cfg_entry_idx, &tmp, sizeof(tmp));
             }
         case CONFIG_FLOAT: {
                 const float tmp = strtof(value_str, NULL);
-                if(errno == ERANGE) return CFG_RC_ERROR;
+                if(errno == ERANGE) {
+                    errno = 0;
+                    return CFG_RC_ERROR;
+                }
                 return config_setByIdx(cfg, cfg_entry_idx, &tmp, sizeof(tmp));
             }
         case CONFIG_STRING:

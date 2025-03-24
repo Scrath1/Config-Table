@@ -14,6 +14,8 @@ extern "C" {
 // RW Permissions
 
 typedef enum {
+    CFG_RC_ERROR_INVALID = -7, // Invalid state detected
+    CFG_RC_ERROR_FORMAT = -6, // Error in string formatting detected
     CFG_RC_ERROR_TYPE_MISMATCH = -5,  // Requested type was incorrect for the value
     CFG_RC_ERROR_RANGE = -4,          // Given value was out of expected/valid range
     CFG_RC_ERROR_NULLPTR = -3,        // Unexpected nullptr
@@ -104,8 +106,17 @@ CfgRet_t config_setByIdx(ConfigTable_t* cfg, uint32_t idx, const void* value, ui
  * @param str [IN] String of format "key: value" which will be attempted
  *  to be parsed into a configuration entry with a matching key.
  *  This string may be modified during parsing
+ *
+ * @note Parsing of booleans is done by checking the first character
+ *  of the boolean value string for the characters 'T' 't' 'F' 'f' '1' '0'
  * @param len [IN] size of str string including null-terminator
- * @return
+ * @return CFG_RC_SUCCESS on success
+ * @return CFG_RC_ERROR if parsing of value failed
+ * @return CFG_RC_ERROR_INVALID if the entry with a matching key has no type associated with it
+ * @return CFG_RC_ERROR_NULLPTR if cfg or str is NULL
+ * @return CFG_RC_ERROR_FORMAT if the separator between key and value was not found
+ * @return CFG_RC_ERROR_UNKNOWN_KEY if the key provided in str was not found
+ * @return any error caused by config_setByIdx
  */
 CfgRet_t config_parseKVStr(ConfigTable_t* cfg, char* str, uint32_t len);
 
@@ -117,7 +128,7 @@ CfgRet_t config_parseKVStr(ConfigTable_t* cfg, char* str, uint32_t len);
 /**
  * Returns the uint32 value for the given key if the type matches
  * @param cfg [IN] Configuration table
- * @param idx [IN] Index of the configuration entry in the config table
+ * @param key [IN] Configuration key string
  * @param value [OUT] Pointer to value with correct typecast applied
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg or key are NULL
@@ -141,7 +152,7 @@ CfgRet_t config_getUint32ByIdx(const ConfigTable_t* cfg, uint32_t idx, uint32_t*
 /**
  * Returns the int32 value for the given key if the type matches
  * @param cfg [IN] Configuration table
- * @param idx [IN] Index of the configuration entry in the config table
+ * @param key [IN] Configuration key string
  * @param value [OUT] Pointer to value with correct typecast applied
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg or key are NULL
@@ -165,7 +176,7 @@ CfgRet_t config_getInt32ByIdx(const ConfigTable_t* cfg, uint32_t idx, int32_t* v
 /**
  * Returns the float value for the given key if the type matches
  * @param cfg [IN] Configuration table
- * @param idx [IN] Index of the configuration entry in the config table
+ * @param key [IN] Configuration key string
  * @param value [OUT] Pointer to value with correct typecast applied
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg or key are NULL
@@ -189,7 +200,7 @@ CfgRet_t config_getFloatByIdx(const ConfigTable_t* cfg, uint32_t idx, float* val
 /**
  * Returns the string for the given key if the type matches
  * @param cfg [IN] Configuration table
- * @param idx [IN] Index of the configuration entry in the config table
+ * @param key [IN] Configuration key string
  * @param str [OUT] Pointer to the string with correct typecast applied
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg or key are NULL
@@ -213,7 +224,7 @@ CfgRet_t config_getStringByIdx(const ConfigTable_t* cfg, uint32_t idx, char** st
 /**
  * Returns the bool value for the given key if the type matches
  * @param cfg [IN] Configuration table
- * @param idx [IN] Index of the configuration entry in the config table
+ * @param key [IN] Configuration key string
  * @param value [OUT] Pointer to value with correct typecast applied
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg or key are NULL

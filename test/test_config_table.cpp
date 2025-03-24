@@ -164,4 +164,87 @@ TEST_F(Config_Table_Test, SpecializedGetterTest) {
     EXPECT_EQ(b, BOOL_DEFAULT_VALUE);
 }
 
-// ToDo: Test key-value parsing
+TEST_F(Config_Table_Test, KeyValueParsingTest) {
+    // Test rejection of unknown keys
+    char invalid_key_str[] = "foo: bar";
+    EXPECT_EQ(CFG_RC_ERROR_UNKNOWN_KEY, config_parseKVStr(&config_table, invalid_key_str, sizeof(invalid_key_str)));
+    // Test missing separator
+    char missing_sep_str[] = "hello world";
+    EXPECT_EQ(CFG_RC_ERROR_FORMAT, config_parseKVStr(&config_table, missing_sep_str, sizeof(missing_sep_str)));
+    // Test all types
+    // uint
+    char valid_uint_str[] = "uint32_t: 9600";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_uint_str, sizeof(valid_uint_str)));
+    uint32_t parsed_uint = 0;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getUint32ByKey(&config_table, "uint32_t", &parsed_uint));
+    EXPECT_EQ(parsed_uint, 9600);
+    char invalid_uint_str[] = "uint32_t: -1";
+    EXPECT_EQ(CFG_RC_ERROR, config_parseKVStr(&config_table, invalid_uint_str, sizeof(invalid_uint_str)));
+    // int
+    char valid_int_str[] = "int32_t: -50";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_int_str, sizeof(valid_int_str)));
+    int32_t parsed_int = 0;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getInt32ByKey(&config_table, "int32_t", &parsed_int));
+    char invalid_int_str[] = "int32_t: 4294967295"; // out of range
+    EXPECT_EQ(CFG_RC_ERROR, config_parseKVStr(&config_table, invalid_int_str, sizeof(invalid_int_str)));
+    // float
+    char valid_float_str[] = "float: 1.5";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_float_str, sizeof(valid_float_str)));
+    float parsed_float = 0;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getFloatByKey(&config_table, "float", &parsed_float));
+    EXPECT_NEAR(parsed_float, 1.5, FLT_EPSILON);
+    // string
+    char valid_str_1[] = "string: valid string";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_str_1, sizeof(valid_str_1)));
+    char* parsed_str = nullptr;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByKey(&config_table, "string",&parsed_str));
+    EXPECT_STREQ("valid string", parsed_str);
+    parsed_str = nullptr;
+    char valid_str_2[] = "string: \"valid string\"";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_str_2, sizeof(valid_str_2)));
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByKey(&config_table, "string", &parsed_str));
+    EXPECT_STREQ("valid string", parsed_str);
+    char oversized_str[] = "string: This string is too long for the current character limit";
+    EXPECT_EQ(CFG_RC_ERROR_TOO_LARGE, config_parseKVStr(&config_table, oversized_str, sizeof(oversized_str)));
+
+    // bool
+    // Test all configurations for strings
+    bool parsed_bool = false;
+    int32_t bool_idx = config_getIdxFromKey(&config_table, "bool");
+    ASSERT_NE(bool_idx, -1);
+
+    char valid_true_str1[] = "bool: True";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_true_str1, sizeof(valid_true_str1)));
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getBoolByIdx(&config_table, bool_idx, &parsed_bool));
+    EXPECT_TRUE(parsed_bool);
+    parsed_bool = false;
+
+    char valid_true_str2[] = "bool: true";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_true_str2, sizeof(valid_true_str2)));
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getBoolByIdx(&config_table, bool_idx, &parsed_bool));
+    EXPECT_TRUE(parsed_bool);
+    parsed_bool = false;
+
+    char valid_true_str3[] = "bool: 1";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_true_str3, sizeof(valid_true_str3)));
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getBoolByIdx(&config_table, bool_idx, &parsed_bool));
+    EXPECT_TRUE(parsed_bool);
+
+    char valid_false_str1[] = "bool: False";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_false_str1, sizeof(valid_false_str1)));
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getBoolByIdx(&config_table, bool_idx, &parsed_bool));
+    EXPECT_FALSE(parsed_bool);
+    parsed_bool = true;
+
+    char valid_false_str2[] = "bool: false";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_false_str2, sizeof(valid_false_str2)));
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getBoolByIdx(&config_table, bool_idx, &parsed_bool));
+    EXPECT_FALSE(parsed_bool);
+    parsed_bool = true;
+
+    char valid_false_str3[] = "bool: 0";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_false_str3, sizeof(valid_false_str3)));
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getBoolByIdx(&config_table, bool_idx, &parsed_bool));
+    EXPECT_FALSE(parsed_bool);
+    parsed_bool = true;
+}
