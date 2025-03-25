@@ -47,12 +47,5 @@ int main() {
     char newSSID[] = "Foobar";
     config_setByKey(&table, "SSID", newSSID, sizeof(newSSID));
     print_config(table);
-    std::cout << "Parsing Test" << std::endl;
-    char kvstr1[] = "SSID: ANewSSID";
-    config_parseKVStr(&table, kvstr1, sizeof(kvstr1));
-    print_config(table);
-    char kvstr2[] = "SSID: \"A\"";
-    config_parseKVStr(&table, kvstr2, sizeof(kvstr2));
-    print_config(table);
     return 0;
 }

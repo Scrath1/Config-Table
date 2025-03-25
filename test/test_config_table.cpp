@@ -176,11 +176,17 @@ TEST_F(Config_Table_Test, KeyValueParsingTest) {
     EXPECT_EQ(CFG_RC_ERROR_FORMAT, config_parseKVStr(&config_table, missing_sep_str, sizeof(missing_sep_str)));
     // Test all types
     // uint
-    char valid_uint_str[] = "uint32_t: 9600";
-    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_uint_str, sizeof(valid_uint_str)));
+    char valid_uint_str1[] = "uint32_t: 9600";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_uint_str1, sizeof(valid_uint_str1)));
     uint32_t parsed_uint = 0;
     EXPECT_EQ(CFG_RC_SUCCESS, config_getUint32ByKey(&config_table, "uint32_t", &parsed_uint));
     EXPECT_EQ(parsed_uint, 9600);
+    // test for optional whitespace removal while parsing
+    char valid_uint_str2[] = "uint32_t:42";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_uint_str2, sizeof(valid_uint_str2)));
+    parsed_uint = 0;
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getUint32ByKey(&config_table, "uint32_t", &parsed_uint));
+    EXPECT_EQ(parsed_uint, 42);
     char invalid_uint_str[] = "uint32_t: -1";
     EXPECT_EQ(CFG_RC_ERROR, config_parseKVStr(&config_table, invalid_uint_str, sizeof(invalid_uint_str)));
     // int
@@ -250,4 +256,56 @@ TEST_F(Config_Table_Test, KeyValueParsingTest) {
     EXPECT_EQ(CFG_RC_SUCCESS, config_getBoolByIdx(&config_table, bool_idx, &parsed_bool));
     EXPECT_FALSE(parsed_bool);
     parsed_bool = true;
+}
+
+TEST_F(Config_Table_Test, SaveLoadTest) {
+    constexpr char filename[] = "test.txt";
+    EXPECT_EQ(CFG_RC_ERROR_NULLPTR, config_saveToFile(nullptr, filename));
+    EXPECT_EQ(CFG_RC_ERROR_NULLPTR, config_saveToFile(&config_table, nullptr));
+    // Try to actually write the file
+    EXPECT_EQ(CFG_RC_SUCCESS, config_saveToFile(&config_table, filename));
+
+    // clear current data in config and reload it, then compare that to the original data
+    this->_uint32_config_entry = 0;
+    this->_int32_config_entry = 0;
+    this->_float_config_entry = 0;
+    memset(this->_string_config_entry, 0, sizeof(this->_string_config_entry));
+    this->_bool_config_entry = !BOOL_DEFAULT_VALUE;
+
+    // Expect correct parsing of data from test file
+    EXPECT_EQ(CFG_RC_SUCCESS, config_loadFromFile(&config_table, filename));
+    // compare loaded data against original data
+    EXPECT_EQ(this->_uint32_config_entry, UINT32_T_DEFAULT_VALUE);
+    EXPECT_EQ(this->_int32_config_entry, INT32_T_DEFAULT_VALUE);
+    EXPECT_FLOAT_EQ(this->_float_config_entry, FLOAT_DEFAULT_VALUE);
+    EXPECT_STREQ(this->_string_config_entry, STRING_DEFAULT_VALUE);
+    EXPECT_EQ(this->_bool_config_entry, BOOL_DEFAULT_VALUE);
+
+    // Add an entry with an unknown key to the file and try loading it again
+    constexpr char unknown_key_line[] = "unknown_key: foobar";
+    FILE* file_ptr = nullptr;
+    file_ptr = fopen(filename, "a");
+    ASSERT_NE(nullptr, file_ptr);
+    fprintf(file_ptr, unknown_key_line);
+    fclose((file_ptr));
+    EXPECT_EQ(CFG_RC_ERROR_INCOMPLETE, config_loadFromFile(&config_table, filename));
+
+    // Try loading a non-existing file
+    EXPECT_EQ(CFG_RC_ERROR, config_loadFromFile(&config_table, "unknown_file.txt"));
+
+    // Check for handling of string that does not fit when writing to a file
+    char _oversized_string_entry[FILE_MAX_LINE_LEN * 2] = "";
+    memset(_oversized_string_entry, 'a', sizeof(_oversized_string_entry));
+    _oversized_string_entry[sizeof(_oversized_string_entry) - 1] = '\0';
+    ConfigEntry_t local_config_entries[1] = {
+        {"oversized_string", CONFIG_STRING, &_oversized_string_entry, sizeof(_oversized_string_entry)},
+    };
+    ConfigTable_t local_table = {
+        .entries = local_config_entries,
+        .count = static_cast<uint32_t>(std::size(local_config_entries))
+    };
+    EXPECT_EQ(CFG_RC_ERROR_INCOMPLETE, config_saveToFile(&local_table, filename));
+
+    // Delete file at end of tests
+    remove(filename);
 }

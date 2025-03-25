@@ -12,11 +12,17 @@ extern "C" {
 // Default values
 // JSON/CLI Adapter
 // RW Permissions
-// Return copies of values instead of pointers
+
+#ifndef FILE_MAX_LINE_LEN
+    // Defines the maximum character length for the buffer
+    // when printing a key-value config pair to a file
+    #define FILE_MAX_LINE_LEN (256)
+#endif
 
 typedef enum {
-    CFG_RC_ERROR_INVALID = -7, // Invalid state detected
-    CFG_RC_ERROR_FORMAT = -6, // Error in string formatting detected
+    CFG_RC_ERROR_INCOMPLETE = -8,     // Operation was partially successful
+    CFG_RC_ERROR_INVALID = -7,        // Invalid state detected
+    CFG_RC_ERROR_FORMAT = -6,         // Error in string formatting detected
     CFG_RC_ERROR_TYPE_MISMATCH = -5,  // Requested type was incorrect for the value
     CFG_RC_ERROR_RANGE = -4,          // Given value was out of expected/valid range
     CFG_RC_ERROR_NULLPTR = -3,        // Unexpected nullptr
@@ -104,26 +110,6 @@ CfgRet_t config_setByKey(ConfigTable_t* cfg, const char* key, const void* value,
  *  fit into the allocated memory for the configuration value
  */
 CfgRet_t config_setByIdx(ConfigTable_t* cfg, uint32_t idx, const void* value, uint32_t size);
-
-/**
- *
- * @param cfg [INOUT] Configuration table
- * @param str [IN] String of format "key: value" which will be attempted
- *  to be parsed into a configuration entry with a matching key.
- *  This string may be modified during parsing
- *
- * @note Parsing of booleans is done by checking the first character
- *  of the boolean value string for the characters 'T' 't' 'F' 'f' '1' '0'
- * @param len [IN] size of str string including null-terminator
- * @return CFG_RC_SUCCESS on success
- * @return CFG_RC_ERROR if parsing of value failed
- * @return CFG_RC_ERROR_INVALID if the entry with a matching key has no type associated with it
- * @return CFG_RC_ERROR_NULLPTR if cfg or str is NULL
- * @return CFG_RC_ERROR_FORMAT if the separator between key and value was not found
- * @return CFG_RC_ERROR_UNKNOWN_KEY if the key provided in str was not found
- * @return any error caused by config_setByIdx
- */
-CfgRet_t config_parseKVStr(ConfigTable_t* cfg, char* str, uint32_t len);
 
 /**
  * Type specific getter and setter functions
@@ -255,6 +241,63 @@ CfgRet_t config_getBoolByKey(const ConfigTable_t* cfg, const char* key, bool* va
  *  @return CFG_RC_ERROR_TYPE_MISMATCH if the requested config entry has the wrong type
  */
 CfgRet_t config_getBoolByIdx(const ConfigTable_t* cfg, uint32_t idx, bool* value);
+
+/**
+ * Storage and parsing
+ * ===================================================================
+ */
+
+/**
+ * Attempt to parse a key-value string into a configuration entry
+ * with a matching key and type.
+ * @param cfg [INOUT] Configuration table
+ * @param str [IN] String of format "key: value" which will be attempted
+ *  to be parsed into a configuration entry with a matching key.
+ *  This string may be modified during parsing.
+ *  Leading or trailing whitespace will be removed during parsing
+ *
+ * @note Parsing of booleans is done by checking the first character
+ *  of the boolean value string for the characters 'T' 't' 'F' 'f' '1' '0'
+ * @param len [IN] size of str string including null-terminator
+ * @return CFG_RC_SUCCESS on success
+ * @return CFG_RC_ERROR if parsing of value failed
+ * @return CFG_RC_ERROR_INVALID if the entry with a matching key has no type associated with it
+ * @return CFG_RC_ERROR_NULLPTR if cfg or str is NULL
+ * @return CFG_RC_ERROR_FORMAT if the separator between key and value was not found
+ * @return CFG_RC_ERROR_UNKNOWN_KEY if the key provided in str was not found
+ * @return any error caused by config_setByIdx
+ */
+CfgRet_t config_parseKVStr(ConfigTable_t* cfg, char* str, uint32_t len);
+
+/**
+ * Attempts to read configuration entries from a file
+ * @param cfg [INOUT] Configuration table where matching key-value pairs will be stored
+ * @param filename [IN] Name of the file to read for config values
+ * @return CFG_RC_SUCCESS on success
+ * @return CFG_RC_ERROR_NULLPTR if cfg or filename are NULL
+ * @return CFG_RC_ERROR if the file could not be opened
+ * @return CFG_RC_ERROR_INCOMPLETE if there was an entry in the file which could not be matched
+ *  to a configuration entry. Other entries have still been loaded.
+ */
+CfgRet_t config_loadFromFile(ConfigTable_t* cfg, const char* filename);
+/**
+ * Attempts to save configuration entries to a file
+ *
+ * @note This function can be overwritten with a custom implementation
+ * @warning The contents of the target file will be overwritten if it already exists
+ * @param cfg [IN] Configuration table
+ * @param filename [IN] Name of the file where config entries should be stored
+ * @return CFG_RC_SUCCESS on success
+ * @return CFG_RC_ERROR_NULLPTR if cfg or filename are NULL
+ * @return CFG_RC_ERROR if the file could not be opened
+ * @return CFG_RC_ERROR_INCOMPLETE if any config entry could not be written to the
+ *  file due to its size being too large for the internal string buffer.
+ *  The internal string buffer is defined by FILE_MAX_LINE_LEN and can be
+ *  overwritten using a compiler flag
+ * @return CFG_RC_ERROR_INVALID if an encoding error has occurred while using
+ *  snprintf.
+ */
+CfgRet_t config_saveToFile(const ConfigTable_t* cfg, const char* filename);
 
 #ifdef __cplusplus
 }
