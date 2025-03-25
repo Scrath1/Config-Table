@@ -12,24 +12,24 @@
 int32_t config_getIdxFromKey(const ConfigTable_t* cfg, const char* key) {
     if(cfg == NULL) return CFG_RC_ERROR_NULLPTR;
     for(int32_t i = 0; i < cfg->count; i++) {
-        const ConfigEntry_t* entry_ptr = &(cfg->entries[i]);
-        if(strcmp(key, entry_ptr->key) == 0) return i;
+        const ConfigEntry_t entry = cfg->entries[i];
+        if(strcmp(key, entry.key) == 0) return i;
     }
     return -1;
 }
 
-CfgRet_t config_getByKey(const ConfigTable_t* cfg, const char* key, ConfigEntry_t** const entry) {
+CfgRet_t config_getByKey(const ConfigTable_t* cfg, const char* key, ConfigEntry_t* const entry) {
     if(cfg == NULL || key == NULL) return CFG_RC_ERROR_NULLPTR;
     const int32_t idx = config_getIdxFromKey(cfg, key);
     if(idx < 0) return CFG_RC_ERROR_UNKNOWN_KEY;
 
     return config_getByIdx(cfg, idx, entry);
 }
-CfgRet_t config_getByIdx(const ConfigTable_t* cfg, uint32_t idx, ConfigEntry_t** const entry) {
+CfgRet_t config_getByIdx(const ConfigTable_t* cfg, uint32_t idx, ConfigEntry_t* const entry) {
     if(cfg == NULL) return CFG_RC_ERROR_NULLPTR;
     if(idx >= cfg->count) return CFG_RC_ERROR_RANGE;
 
-    *entry = &(cfg->entries[idx]);
+    *entry = (cfg->entries[idx]);
 
     return CFG_RC_SUCCESS;
 }
@@ -145,106 +145,115 @@ CfgRet_t config_parseKVStr(ConfigTable_t* cfg, char* str, uint32_t len) {
  */
 
 CfgRet_t config_getUint32ByKey(const ConfigTable_t* cfg, const char* key, uint32_t* value) {
-    ConfigEntry_t* entry_ptr;
-    CfgRet_t ret = config_getByKey(cfg, key, &entry_ptr);
+    ConfigEntry_t entry;
+    CfgRet_t ret = config_getByKey(cfg, key, &entry);
     if(CFG_RC_SUCCESS != ret) return ret;
 
     // Check for possible type mismatch
-    if(entry_ptr->type != CONFIG_UINT32) return CFG_RC_ERROR_TYPE_MISMATCH;
-    *value = *((uint32_t*)entry_ptr->value);
+    if(entry.type != CONFIG_UINT32) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((uint32_t*)entry.value);
     return CFG_RC_SUCCESS;
 }
 CfgRet_t config_getUint32ByIdx(const ConfigTable_t* cfg, uint32_t idx, uint32_t* value) {
-    ConfigEntry_t* entry_ptr;
-    CfgRet_t ret = config_getByIdx(cfg, idx, &entry_ptr);
+    ConfigEntry_t entry;
+    CfgRet_t ret = config_getByIdx(cfg, idx, &entry);
     if(CFG_RC_SUCCESS != ret) return ret;
 
     // Check for possible type mismatch
-    if(entry_ptr->type != CONFIG_UINT32) return CFG_RC_ERROR_TYPE_MISMATCH;
-    *value = *((uint32_t*)entry_ptr->value);
+    if(entry.type != CONFIG_UINT32) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((uint32_t*)entry.value);
     return CFG_RC_SUCCESS;
 }
 
 CfgRet_t config_getInt32ByKey(const ConfigTable_t* cfg, const char* key, int32_t* value) {
-    ConfigEntry_t* entry_ptr;
-    CfgRet_t ret = config_getByKey(cfg, key, &entry_ptr);
+    ConfigEntry_t entry;
+    CfgRet_t ret = config_getByKey(cfg, key, &entry);
     if(CFG_RC_SUCCESS != ret) return ret;
 
     // Check for possible type mismatch
-    if(entry_ptr->type != CONFIG_INT32) return CFG_RC_ERROR_TYPE_MISMATCH;
-    *value = *((int32_t*)entry_ptr->value);
+    if(entry.type != CONFIG_INT32) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((int32_t*)entry.value);
     return CFG_RC_SUCCESS;
 }
 CfgRet_t config_getInt32ByIdx(const ConfigTable_t* cfg, uint32_t idx, int32_t* value) {
-    ConfigEntry_t* entry_ptr;
-    CfgRet_t ret = config_getByIdx(cfg, idx, &entry_ptr);
+    ConfigEntry_t entry;
+    CfgRet_t ret = config_getByIdx(cfg, idx, &entry);
     if(CFG_RC_SUCCESS != ret) return ret;
 
     // Check for possible type mismatch
-    if(entry_ptr->type != CONFIG_INT32) return CFG_RC_ERROR_TYPE_MISMATCH;
-    *value = *((int32_t*)entry_ptr->value);
+    if(entry.type != CONFIG_INT32) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((int32_t*)entry.value);
     return CFG_RC_SUCCESS;
 }
 
 CfgRet_t config_getFloatByKey(const ConfigTable_t* cfg, const char* key, float* value) {
-    ConfigEntry_t* entry_ptr;
-    CfgRet_t ret = config_getByKey(cfg, key, &entry_ptr);
+    ConfigEntry_t entry;
+    CfgRet_t ret = config_getByKey(cfg, key, &entry);
     if(CFG_RC_SUCCESS != ret) return ret;
 
     // Check for possible type mismatch
-    if(entry_ptr->type != CONFIG_FLOAT) return CFG_RC_ERROR_TYPE_MISMATCH;
-    *value = *((float*)entry_ptr->value);
+    if(entry.type != CONFIG_FLOAT) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((float*)entry.value);
     return CFG_RC_SUCCESS;
 }
 CfgRet_t config_getFloatByIdx(const ConfigTable_t* cfg, uint32_t idx, float* value) {
-    ConfigEntry_t* entry_ptr;
-    CfgRet_t ret = config_getByIdx(cfg, idx, &entry_ptr);
+    ConfigEntry_t entry;
+    CfgRet_t ret = config_getByIdx(cfg, idx, &entry);
     if(CFG_RC_SUCCESS != ret) return ret;
 
     // Check for possible type mismatch
-    if(entry_ptr->type != CONFIG_FLOAT) return CFG_RC_ERROR_TYPE_MISMATCH;
-    *value = *((float*)entry_ptr->value);
+    if(entry.type != CONFIG_FLOAT) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((float*)entry.value);
     return CFG_RC_SUCCESS;
 }
 
-CfgRet_t config_getStringByKey(const ConfigTable_t* cfg, const char* key, char** str) {
-    ConfigEntry_t* entry_ptr;
-    CfgRet_t ret = config_getByKey(cfg, key, &entry_ptr);
+CfgRet_t config_getStringByKey(const ConfigTable_t* cfg, const char* key, char* str, uint32_t str_size) {
+    ConfigEntry_t entry;
+    CfgRet_t ret = config_getByKey(cfg, key, &entry);
     if(CFG_RC_SUCCESS != ret) return ret;
 
+
     // Check for possible type mismatch
-    if(entry_ptr->type != CONFIG_STRING) return CFG_RC_ERROR_TYPE_MISMATCH;
-    *str = (char*)entry_ptr->value;
+    if(entry.type != CONFIG_STRING) return CFG_RC_ERROR_TYPE_MISMATCH;
+    // Size check
+    uint32_t stored_str_size = strlen(entry.value) + 1;
+    if(stored_str_size > str_size) return CFG_RC_ERROR_TOO_LARGE;
+    // Copy string
+    strncpy(str, (char*)entry.value, str_size);
     return CFG_RC_SUCCESS;
 }
-CfgRet_t config_getStringByIdx(const ConfigTable_t* cfg, uint32_t idx, char** str) {
-    ConfigEntry_t* entry_ptr;
-    CfgRet_t ret = config_getByIdx(cfg, idx, &entry_ptr);
+CfgRet_t config_getStringByIdx(const ConfigTable_t* cfg, uint32_t idx, char* str, uint32_t str_size) {
+    ConfigEntry_t entry;
+    CfgRet_t ret = config_getByIdx(cfg, idx, &entry);
     if(CFG_RC_SUCCESS != ret) return ret;
 
     // Check for possible type mismatch
-    if(entry_ptr->type != CONFIG_STRING) return CFG_RC_ERROR_TYPE_MISMATCH;
-    *str = (char*)entry_ptr->value;
+    if(entry.type != CONFIG_STRING) return CFG_RC_ERROR_TYPE_MISMATCH;
+    // size check
+    uint32_t stored_str_size = strlen(entry.value) + 1;
+    if(stored_str_size > str_size) return CFG_RC_ERROR_TOO_LARGE;
+    // copy string
+    strncpy(str, (char*)entry.value, str_size);
     return CFG_RC_SUCCESS;
 }
 
 CfgRet_t config_getBoolByKey(const ConfigTable_t* cfg, const char* key, bool* value) {
-    ConfigEntry_t* entry_ptr;
-    CfgRet_t ret = config_getByKey(cfg, key, &entry_ptr);
+    ConfigEntry_t entry;
+    CfgRet_t ret = config_getByKey(cfg, key, &entry);
     if(CFG_RC_SUCCESS != ret) return ret;
 
     // Check for possible type mismatch
-    if(entry_ptr->type != CONFIG_BOOL) return CFG_RC_ERROR_TYPE_MISMATCH;
-    *value = *((bool*)entry_ptr->value);
+    if(entry.type != CONFIG_BOOL) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((bool*)entry.value);
     return CFG_RC_SUCCESS;
 }
 CfgRet_t config_getBoolByIdx(const ConfigTable_t* cfg, uint32_t idx, bool* value) {
-    ConfigEntry_t* entry_ptr;
-    CfgRet_t ret = config_getByIdx(cfg, idx, &entry_ptr);
+    ConfigEntry_t entry;
+    CfgRet_t ret = config_getByIdx(cfg, idx, &entry);
     if(CFG_RC_SUCCESS != ret) return ret;
 
     // Check for possible type mismatch
-    if(entry_ptr->type != CONFIG_BOOL) return CFG_RC_ERROR_TYPE_MISMATCH;
-    *value = *((bool*)entry_ptr->value);
+    if(entry.type != CONFIG_BOOL) return CFG_RC_ERROR_TYPE_MISMATCH;
+    *value = *((bool*)entry.value);
     return CFG_RC_SUCCESS;
 }

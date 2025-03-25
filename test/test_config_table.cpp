@@ -54,29 +54,26 @@ TEST_F(Config_Table_Test, KeyToIndexResolutionTest) {
 
 TEST_F(Config_Table_Test, GenericGetterTest) {
     // Begin by testing valid keys
-    ConfigEntry_t* uint_entry_ptr = nullptr;
-    ASSERT_EQ(CFG_RC_SUCCESS, config_getByKey(&config_table, "uint32_t", &uint_entry_ptr));
-    ASSERT_NE(nullptr, uint_entry_ptr);
-    EXPECT_EQ(CONFIG_UINT32, uint_entry_ptr->type);
-    EXPECT_EQ(sizeof(uint32_t), uint_entry_ptr->size);
-    EXPECT_EQ(UINT32_T_DEFAULT_VALUE, *static_cast<uint32_t*>(uint_entry_ptr->value));
+    ConfigEntry_t uint_entry{};
+    ASSERT_EQ(CFG_RC_SUCCESS, config_getByKey(&config_table, "uint32_t", &uint_entry));
+    EXPECT_EQ(CONFIG_UINT32, uint_entry.type);
+    EXPECT_EQ(sizeof(uint32_t), uint_entry.size);
+    EXPECT_EQ(UINT32_T_DEFAULT_VALUE, *static_cast<uint32_t*>(uint_entry.value));
 
-    ConfigEntry_t* float_entry_ptr = nullptr;
-    EXPECT_EQ(CFG_RC_SUCCESS, config_getByKey(&config_table, "float", &float_entry_ptr));
-    EXPECT_NE(nullptr, float_entry_ptr);
-    EXPECT_EQ(CONFIG_FLOAT, float_entry_ptr->type);
-    EXPECT_EQ(sizeof(float), float_entry_ptr->size);
-    EXPECT_NEAR(FLOAT_DEFAULT_VALUE, *static_cast<float*>(float_entry_ptr->value), 0.005);
+    ConfigEntry_t float_entry{};
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getByKey(&config_table, "float", &float_entry));
+    EXPECT_EQ(CONFIG_FLOAT, float_entry.type);
+    EXPECT_EQ(sizeof(float), float_entry.size);
+    EXPECT_NEAR(FLOAT_DEFAULT_VALUE, *static_cast<float*>(float_entry.value), 0.005);
 
-    ConfigEntry_t* string_entry_ptr = nullptr;
-    EXPECT_EQ(CFG_RC_SUCCESS, config_getByKey(&config_table, "string", &string_entry_ptr));
-    EXPECT_NE(nullptr, string_entry_ptr);
-    EXPECT_EQ(CONFIG_STRING, string_entry_ptr->type);
-    EXPECT_STREQ(STRING_DEFAULT_VALUE, static_cast<char*>(string_entry_ptr->value));
+    ConfigEntry_t string_entry{};
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getByKey(&config_table, "string", &string_entry));
+    EXPECT_EQ(CONFIG_STRING, string_entry.type);
+    EXPECT_STREQ(STRING_DEFAULT_VALUE, static_cast<char*>(string_entry.value));
 
     // Test invalid keys
-    ConfigEntry_t* invalid_entry_ptr = nullptr;
-    EXPECT_EQ(CFG_RC_ERROR_UNKNOWN_KEY, config_getByKey(&config_table, "invalid", &invalid_entry_ptr));
+    ConfigEntry_t invalid_entry;
+    EXPECT_EQ(CFG_RC_ERROR_UNKNOWN_KEY, config_getByKey(&config_table, "invalid", &invalid_entry));
 
     // Test nullptr handling
     EXPECT_EQ(CFG_RC_ERROR_NULLPTR, config_getByKey(nullptr, "uint32_t", nullptr));
@@ -85,37 +82,35 @@ TEST_F(Config_Table_Test, GenericGetterTest) {
 
 TEST_F(Config_Table_Test, GenericSetterTest) {
     // Test for simple ints
-    ConfigEntry_t* entry_ptr = nullptr;
-    ASSERT_EQ(CFG_RC_SUCCESS, config_getByKey(&config_table, "int32_t", &entry_ptr));
-    ASSERT_NE(nullptr, entry_ptr);
+    ConfigEntry_t entry{};
+    ASSERT_EQ(CFG_RC_SUCCESS, config_getByKey(&config_table, "int32_t", &entry));
 
-    int32_t new_value = *static_cast<int32_t*>(entry_ptr->value) * 2;
+    int32_t new_value = *static_cast<int32_t*>(entry.value) * 2;
     EXPECT_EQ(CFG_RC_SUCCESS, config_setByKey(&config_table, "int32_t", &new_value, sizeof(new_value)));
 
-    EXPECT_EQ(CFG_RC_SUCCESS, config_getByKey(&config_table, "int32_t", &entry_ptr));
-    EXPECT_EQ(new_value, *static_cast<int32_t*>(entry_ptr->value));
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getByKey(&config_table, "int32_t", &entry));
+    EXPECT_EQ(new_value, *static_cast<int32_t*>(entry.value));
 
     // Also test for correct string handling
     constexpr char oversized_len_str[MAX_STRING_LEN + 1] = "abcdefghijklmnop";
     constexpr char max_len_str[MAX_STRING_LEN] = "abcdefghijklmno";
     constexpr char half_len_str[] = "abcdefg";
 
-    EXPECT_EQ(CFG_RC_SUCCESS, config_getByKey(&config_table, "string", &entry_ptr));
-    EXPECT_NE(nullptr, entry_ptr);
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getByKey(&config_table, "string", &entry));
 
-    EXPECT_STREQ(STRING_DEFAULT_VALUE, static_cast<char*>(entry_ptr->value));
+    EXPECT_STREQ(STRING_DEFAULT_VALUE, static_cast<char*>(entry.value));
 
     // Try writing a string that is too large for the memory
     EXPECT_EQ(CFG_RC_ERROR_TOO_LARGE, config_setByKey(&config_table, "string", oversized_len_str, sizeof(oversized_len_str)));
     // Try writing a string that barely fits
     EXPECT_EQ(CFG_RC_SUCCESS, config_setByKey(&config_table, "string", max_len_str, sizeof(max_len_str)));
-    EXPECT_STREQ(max_len_str, static_cast<char*>(entry_ptr->value));
+    EXPECT_STREQ(max_len_str, static_cast<char*>(entry.value));
     // Determine correct null-terminator placement
-    EXPECT_EQ('\0', static_cast<char*>(entry_ptr->value)[MAX_STRING_LEN - 1]);
+    EXPECT_EQ('\0', static_cast<char*>(entry.value)[MAX_STRING_LEN - 1]);
     // Try writing a string that fits and make sure that the null-terminator is again set correctly
     EXPECT_EQ(CFG_RC_SUCCESS, config_setByKey(&config_table, "string", half_len_str, sizeof(half_len_str)));
-    EXPECT_STREQ(half_len_str, static_cast<char*>(entry_ptr->value));
-    EXPECT_EQ('\0', static_cast<char*>(entry_ptr->value)[MAX_STRING_LEN / 2 - 1]);
+    EXPECT_STREQ(half_len_str, static_cast<char*>(entry.value));
+    EXPECT_EQ('\0', static_cast<char*>(entry.value)[MAX_STRING_LEN / 2 - 1]);
 }
 
 TEST_F(Config_Table_Test, SpecializedGetterTest) {
@@ -148,12 +143,20 @@ TEST_F(Config_Table_Test, SpecializedGetterTest) {
 
     // string
     int32_t string_idx = config_getIdxFromKey(&config_table, "string");
-    char* str = nullptr;
-    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByKey(&config_table, "string", &str));
+    char str[MAX_STRING_LEN] = "";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByKey(&config_table, "string", str, MAX_STRING_LEN));
     EXPECT_STREQ(str, STRING_DEFAULT_VALUE);
-    str = nullptr;
-    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByIdx(&config_table, string_idx, &str));
+    memset(str, 0, MAX_STRING_LEN);
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByIdx(&config_table, string_idx, str, MAX_STRING_LEN));
     EXPECT_STREQ(str, STRING_DEFAULT_VALUE);
+    // Check whether modifications of str result in modifications of the entry
+    str[0] = '\0';
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByIdx(&config_table, string_idx, str, MAX_STRING_LEN));
+    EXPECT_STREQ(str, STRING_DEFAULT_VALUE);
+    // Check case where string in config entry does not fit into provided string
+    char undersized_str[sizeof(STRING_DEFAULT_VALUE) / 2] = "";
+    EXPECT_EQ(CFG_RC_ERROR_TOO_LARGE, config_getStringByIdx(&config_table, string_idx, undersized_str, sizeof(undersized_str)));
+    EXPECT_STRNE(undersized_str, STRING_DEFAULT_VALUE);
 
     int32_t bool_idx = config_getIdxFromKey(&config_table, "bool");
     bool b = !BOOL_DEFAULT_VALUE;
@@ -196,13 +199,13 @@ TEST_F(Config_Table_Test, KeyValueParsingTest) {
     // string
     char valid_str_1[] = "string: valid string";
     EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_str_1, sizeof(valid_str_1)));
-    char* parsed_str = nullptr;
-    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByKey(&config_table, "string",&parsed_str));
+    char parsed_str[MAX_STRING_LEN] = "";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByKey(&config_table, "string", parsed_str, sizeof(parsed_str)));
     EXPECT_STREQ("valid string", parsed_str);
-    parsed_str = nullptr;
+    memset(parsed_str, 0, MAX_STRING_LEN);
     char valid_str_2[] = "string: \"valid string\"";
     EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, valid_str_2, sizeof(valid_str_2)));
-    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByKey(&config_table, "string", &parsed_str));
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByKey(&config_table, "string", parsed_str, sizeof(parsed_str)));
     EXPECT_STREQ("valid string", parsed_str);
     char oversized_str[] = "string: This string is too long for the current character limit";
     EXPECT_EQ(CFG_RC_ERROR_TOO_LARGE, config_parseKVStr(&config_table, oversized_str, sizeof(oversized_str)));

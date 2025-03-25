@@ -12,6 +12,7 @@ extern "C" {
 // Default values
 // JSON/CLI Adapter
 // RW Permissions
+// Return copies of values instead of pointers
 
 typedef enum {
     CFG_RC_ERROR_INVALID = -7, // Invalid state detected
@@ -50,6 +51,8 @@ int32_t config_getIdxFromKey(const ConfigTable_t* cfg, const char* key);
 
 /**
  * Returns a configuration entry for the given key
+ * @warning This function returns a pointer to the configuration entry, not a copy.
+ *  Changes to that pointer will result in changes to the actual stored configuration
  * @param cfg [IN] Configuration table
  * @param key [IN] Configuration key string
  * @param entry [OUT] Pointer to the corresponding configuration entry
@@ -57,10 +60,12 @@ int32_t config_getIdxFromKey(const ConfigTable_t* cfg, const char* key);
  * @return CFG_RC_ERROR_NULLPTR if cfg or key are NULL
  * @return CFG_RC_ERROR_UNKNOWN_KEY if no matching key was found
  */
-CfgRet_t config_getByKey(const ConfigTable_t* cfg, const char* key, ConfigEntry_t** const entry);
+CfgRet_t config_getByKey(const ConfigTable_t* cfg, const char* key, ConfigEntry_t* const entry);
 
 /**
  * Returns a configuration entry for the given index
+ * @warning This function returns a pointer to the configuration entry, not a copy.
+ *  Changes to that pointer will result in changes to the actual stored configuration
  * @param cfg [IN] Configuration table
  * @param idx [IN] Index of the configuration entry in the config table
  * @param entry [OUT] Pointer to the corresponding configuration entry
@@ -69,7 +74,7 @@ CfgRet_t config_getByKey(const ConfigTable_t* cfg, const char* key, ConfigEntry_
  * @return CFG_RC_ERROR_RANGE if the given index was larger than the
  *  number of entries in the configuration table
  */
-CfgRet_t config_getByIdx(const ConfigTable_t* cfg, uint32_t idx, ConfigEntry_t** const entry);
+CfgRet_t config_getByIdx(const ConfigTable_t* cfg, uint32_t idx, ConfigEntry_t* const entry);
 
 /**
  * Sets a configuration entry value based on the given key
@@ -129,7 +134,7 @@ CfgRet_t config_parseKVStr(ConfigTable_t* cfg, char* str, uint32_t len);
  * Returns the uint32 value for the given key if the type matches
  * @param cfg [IN] Configuration table
  * @param key [IN] Configuration key string
- * @param value [OUT] Pointer to value with correct typecast applied
+ * @param value [OUT] Pointer to a uint32_t where the config value should be stored
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg or key are NULL
  * @return CFG_RC_ERROR_UNKNOWN_KEY if no matching key was found
@@ -140,7 +145,7 @@ CfgRet_t config_getUint32ByKey(const ConfigTable_t* cfg, const char* key, uint32
  * Returns the uint32 value for the given index if the type matches
  * @param cfg [IN] Configuration table
  * @param idx [IN] Index of the configuration entry in the config table
- * @param value [OUT] Pointer to value with correct typecast applied
+ * @param value [OUT] Pointer to a uint32_t where the config value should be stored
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg is NULL
  * @return CFG_RC_ERROR_RANGE if the given index was larger than the
@@ -153,7 +158,7 @@ CfgRet_t config_getUint32ByIdx(const ConfigTable_t* cfg, uint32_t idx, uint32_t*
  * Returns the int32 value for the given key if the type matches
  * @param cfg [IN] Configuration table
  * @param key [IN] Configuration key string
- * @param value [OUT] Pointer to value with correct typecast applied
+ * @param value [OUT] Pointer to a int32_t where the config value should be stored
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg or key are NULL
  * @return CFG_RC_ERROR_UNKNOWN_KEY if no matching key was found
@@ -164,7 +169,7 @@ CfgRet_t config_getInt32ByKey(const ConfigTable_t* cfg, const char* key, int32_t
  * Returns the int32 value for the given index if the type matches
  * @param cfg [IN] Configuration table
  * @param idx [IN] Index of the configuration entry in the config table
- * @param value [OUT] Pointer to value with correct typecast applied
+ * @param value [OUT] Pointer to a int32_t where the config value should be stored
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg is NULL
  * @return CFG_RC_ERROR_RANGE if the given index was larger than the
@@ -177,7 +182,7 @@ CfgRet_t config_getInt32ByIdx(const ConfigTable_t* cfg, uint32_t idx, int32_t* v
  * Returns the float value for the given key if the type matches
  * @param cfg [IN] Configuration table
  * @param key [IN] Configuration key string
- * @param value [OUT] Pointer to value with correct typecast applied
+ * @param value [OUT] Pointer to a float where the config value should be stored
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg or key are NULL
  * @return CFG_RC_ERROR_UNKNOWN_KEY if no matching key was found
@@ -188,7 +193,7 @@ CfgRet_t config_getFloatByKey(const ConfigTable_t* cfg, const char* key, float* 
  * Returns the float value for the given index if the type matches
  * @param cfg [IN] Configuration table
  * @param idx [IN] Index of the configuration entry in the config table
- * @param value [OUT] Pointer to value with correct typecast applied
+ * @param value [OUT] Pointer to a float where the config value should be stored
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg is NULL
  * @return CFG_RC_ERROR_RANGE if the given index was larger than the
@@ -201,31 +206,37 @@ CfgRet_t config_getFloatByIdx(const ConfigTable_t* cfg, uint32_t idx, float* val
  * Returns the string for the given key if the type matches
  * @param cfg [IN] Configuration table
  * @param key [IN] Configuration key string
- * @param str [OUT] Pointer to the string with correct typecast applied
+ * @param str [INOUT] string buffer of size str_size
+ * @param str_size [IN] Maximum size of str string
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg or key are NULL
  * @return CFG_RC_ERROR_UNKNOWN_KEY if no matching key was found
  * @return CFG_RC_ERROR_TYPE_MISMATCH if the requested config entry has the wrong type
+ * @return CFG_RC_ERROR_TOO_LARGE if the stored string does not fit into the provided str parameter.
+ *  In that case, no data will be written to str
  */
-CfgRet_t config_getStringByKey(const ConfigTable_t* cfg, const char* key, char** str);
+CfgRet_t config_getStringByKey(const ConfigTable_t* cfg, const char* key, char* str, uint32_t str_size);
 /**
  * Returns the string for the given index if the type matches
  * @param cfg [IN] Configuration table
  * @param idx [IN] Index of the configuration entry in the config table
- * @param str [OUT] Pointer to the string with correct typecast applied
+ * @param str [INOUT] string buffer of size str_size
+ * @param str_size [IN] Maximum size of str string
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg is NULL
  * @return CFG_RC_ERROR_RANGE if the given index was larger than the
  *  number of entries in the configuration table
- *  @return CFG_RC_ERROR_TYPE_MISMATCH if the requested config entry has the wrong type
+ * @return CFG_RC_ERROR_TYPE_MISMATCH if the requested config entry has the wrong type
+ * @return CFG_RC_ERROR_TOO_LARGE if the stored string does not fit into the provided str parameter.
+ *  In that case, no data will be written to str
  */
-CfgRet_t config_getStringByIdx(const ConfigTable_t* cfg, uint32_t idx, char** str);
+CfgRet_t config_getStringByIdx(const ConfigTable_t* cfg, uint32_t idx, char* str, uint32_t str_size);
 
 /**
  * Returns the bool value for the given key if the type matches
  * @param cfg [IN] Configuration table
  * @param key [IN] Configuration key string
- * @param value [OUT] Pointer to value with correct typecast applied
+ * @param value [OUT] Pointer to a bool where the config value should be stored
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg or key are NULL
  * @return CFG_RC_ERROR_UNKNOWN_KEY if no matching key was found
@@ -236,7 +247,7 @@ CfgRet_t config_getBoolByKey(const ConfigTable_t* cfg, const char* key, bool* va
  * Returns the bool value for the given index if the type matches
  * @param cfg [IN] Configuration table
  * @param idx [IN] Index of the configuration entry in the config table
- * @param value [OUT] Pointer to value with correct typecast applied
+ * @param value [OUT] Pointer to a bool where the config value should be stored
  * @return CFG_RC_SUCCESS on success
  * @return CFG_RC_ERROR_NULLPTR if cfg is NULL
  * @return CFG_RC_ERROR_RANGE if the given index was larger than the
