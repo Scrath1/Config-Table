@@ -47,6 +47,16 @@ typedef struct {
 } ConfigTable_t;
 
 /**
+ * Function pointer definition for overwriting the save function
+ */
+typedef CfgRet_t (*saveToFileFunc)(const ConfigTable_t* cfg, const char* filename);
+
+/**
+ * Function pointer definition for overwriting the load function
+ */
+typedef CfgRet_t (*loadFromFileFunc)(ConfigTable_t* cfg, const char* filename);
+
+/**
  * Searches for the given key in the config table and returns the corresponding
  * index if it exists.
  * @param cfg [IN] Configuration table
@@ -298,6 +308,16 @@ CfgRet_t config_loadFromFile(ConfigTable_t* cfg, const char* filename);
  *  snprintf.
  */
 CfgRet_t config_saveToFile(const ConfigTable_t* cfg, const char* filename);
+
+/**
+ * Sets a new function for saving and loading configuration data to and from
+ * files.
+ * @param saveFunc [IN] Pointer to the new save function. Pass NULL to reset
+ *  to default function
+ * @param loadFunc [IN] Pointer to the new load function. Pass NULL to reset
+ *  to default function
+ */
+void config_setSaveLoadFunctions(saveToFileFunc saveFunc, loadFromFileFunc loadFunc);
 
 #ifdef __cplusplus
 }

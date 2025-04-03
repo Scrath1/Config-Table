@@ -10,6 +10,12 @@
 // If set to 1 will remove string delimiters (") from strings values parsed in parseKVStr
 #define REMOVE_STRING_DELIMITERS (1)
 
+CfgRet_t config_defaultLoadFunc(ConfigTable_t* cfg, const char* filename);
+CfgRet_t config_defaultSaveFunc(const ConfigTable_t* cfg, const char* filename);
+
+loadFromFileFunc loadFromFileFunction = config_defaultLoadFunc;
+saveToFileFunc saveToFileFunction = config_defaultSaveFunc;
+
 int32_t config_getIdxFromKey(const ConfigTable_t* cfg, const char* key) {
     if(cfg == NULL) return CFG_RC_ERROR_NULLPTR;
     for(int32_t i = 0; i < cfg->count; i++) {
@@ -273,8 +279,7 @@ CfgRet_t config_parseKVStr(ConfigTable_t* cfg, char* str, uint32_t len) {
     return CFG_RC_SUCCESS;
 }
 
-// ToDo: Make weak
-CfgRet_t config_loadFromFile(ConfigTable_t* cfg, const char* filename) {
+CfgRet_t config_defaultLoadFunc(ConfigTable_t* cfg, const char* filename){
     if(cfg == NULL || filename == NULL) return CFG_RC_ERROR_NULLPTR;
     FILE* file_ptr = NULL;
     file_ptr = fopen(filename, "r");
@@ -298,8 +303,12 @@ CfgRet_t config_loadFromFile(ConfigTable_t* cfg, const char* filename) {
     return CFG_RC_SUCCESS;
 }
 
-// ToDo: Make weak
-CfgRet_t config_saveToFile(const ConfigTable_t* cfg, const char* filename) {
+CfgRet_t config_loadFromFile(ConfigTable_t* cfg, const char* filename) {
+    if(loadFromFileFunction != NULL) return loadFromFileFunction(cfg, filename);
+    else return CFG_RC_ERROR_INVALID;
+}
+
+CfgRet_t config_defaultSaveFunc(const ConfigTable_t* cfg, const char* filename){
     if(cfg == NULL || filename == NULL) return CFG_RC_ERROR_NULLPTR;
     FILE* file_ptr = NULL;
     file_ptr = fopen(filename, "w+");
@@ -346,4 +355,16 @@ CfgRet_t config_saveToFile(const ConfigTable_t* cfg, const char* filename) {
     if(encoding_error) return CFG_RC_ERROR_INVALID;
     if(line_length_error) return CFG_RC_ERROR_INCOMPLETE;
     return CFG_RC_SUCCESS;
+}
+
+CfgRet_t config_saveToFile(const ConfigTable_t* cfg, const char* filename) {
+    if(saveToFileFunction != NULL) return saveToFileFunction(cfg, filename);
+    else return CFG_RC_ERROR_INVALID;
+}
+
+void config_setSaveLoadFunctions(saveToFileFunc saveFunc, loadFromFileFunc loadFunc){
+    if(saveFunc == NULL) saveToFileFunction = config_defaultSaveFunc;
+    else saveToFileFunction = saveFunc;
+    if(loadFunc == NULL) loadFromFileFunction = config_defaultLoadFunc;
+    else loadFromFileFunction = loadFunc;
 }
