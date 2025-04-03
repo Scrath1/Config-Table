@@ -51,6 +51,7 @@ CfgRet_t config_setByIdx(ConfigTable_t* cfg, uint32_t idx, const void* value, ui
     if(cfg == NULL || value == NULL) return CFG_RC_ERROR_NULLPTR;
     if(idx >= cfg->count) return CFG_RC_ERROR_RANGE;
     ConfigEntry_t* entry = &(cfg->entries[idx]);
+    if(entry->perm == CFG_PERM_RO || entry->perm == CFG_PERM_SECRET_RO) return CFG_RC_ERROR_READ_ONLY;
     if(size > entry->size) return CFG_RC_ERROR_TOO_LARGE;
     memcpy(entry->value, value, size);
     // Fill remaining memory space with 0 to clear out possible leftover data

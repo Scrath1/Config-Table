@@ -20,6 +20,7 @@ extern "C" {
 #endif
 
 typedef enum {
+    CFG_RC_ERROR_READ_ONLY = -9,      // The setting is read-only
     CFG_RC_ERROR_INCOMPLETE = -8,     // Operation was partially successful
     CFG_RC_ERROR_INVALID = -7,        // Invalid state detected
     CFG_RC_ERROR_FORMAT = -6,         // Error in string formatting detected
@@ -32,6 +33,23 @@ typedef enum {
     CFG_RC_SUCCESS = 1,               // Success
 } CfgRet_t;
 
+/**
+ * Flag for setting some permission context information for individual
+ * settings. There is no way for the library to actually enforce this
+ * beyond blocking the setter functions for read-only entries but
+ * these permissions can be used to provide some additional context
+ * for example while printing the configuration to the console to
+ * exclude passwords.
+ */
+typedef enum {
+    CFG_PERM_RW = 0, // read/write permissions
+    CFG_PERM_RO = 1, // read-only
+    CFG_PERM_SECRET_RW = 2, // read/write but entries with this flag should be
+        // ignored for example when printing the settings somewhere
+    CFG_PERM_SECRET_RO = 3, // read-only but entries with this flag should be
+    // ignored for example when printing the settings somewhere
+} CfgPermissions_t;
+
 typedef enum { CONFIG_NONE = 0, CONFIG_UINT32, CONFIG_INT32, CONFIG_FLOAT, CONFIG_STRING, CONFIG_BOOL } ConfigType_t;
 
 typedef struct {
@@ -39,6 +57,7 @@ typedef struct {
     ConfigType_t type;
     void* value;
     uint32_t size;
+    CfgPermissions_t perm;
 } ConfigEntry_t;
 
 typedef struct {
@@ -103,6 +122,7 @@ CfgRet_t config_getByIdx(const ConfigTable_t* cfg, uint32_t idx, ConfigEntry_t* 
  * @return CFG_RC_ERROR_UNKNOWN_KEY if no matching key was found
  * @return CFG_RC_ERROR_TOO_LARGE if the given value does not
  *  fit into the allocated memory for the configuration value
+ * @return CFG_RC_ERROR_READ_ONLY if the setting to change is read-only
  */
 CfgRet_t config_setByKey(ConfigTable_t* cfg, const char* key, const void* value, uint32_t size);
 
@@ -118,6 +138,7 @@ CfgRet_t config_setByKey(ConfigTable_t* cfg, const char* key, const void* value,
  *  number of entries in the configuration table
  * @return CFG_RC_ERROR_TOO_LARGE if the given value does not
  *  fit into the allocated memory for the configuration value
+ * @return CFG_RC_ERROR_READ_ONLY if the setting to change is read-only
  */
 CfgRet_t config_setByIdx(ConfigTable_t* cfg, uint32_t idx, const void* value, uint32_t size);
 
