@@ -105,7 +105,7 @@ CfgRet_t config_getByKey(const ConfigTable_t* cfg, const char* key, ConfigEntry_
  * @param idx [IN] Index of the configuration entry in the config table
  * @param entry [OUT] Pointer to the corresponding configuration entry
  * @return CFG_RC_SUCCESS on success
- * @return CFG_RC_ERROR_NULLPTR if cfg is NULL
+ * @return CFG_RC_ERROR_NULLPTR if cfg or entry is NULL
  * @return CFG_RC_ERROR_RANGE if the given index was larger than the
  *  number of entries in the configuration table
  */

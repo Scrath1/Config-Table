@@ -33,7 +33,7 @@ CfgRet_t config_getByKey(const ConfigTable_t* cfg, const char* key, ConfigEntry_
     return config_getByIdx(cfg, idx, entry);
 }
 CfgRet_t config_getByIdx(const ConfigTable_t* cfg, uint32_t idx, ConfigEntry_t* const entry) {
-    if(cfg == NULL) return CFG_RC_ERROR_NULLPTR;
+    if(cfg == NULL || entry == NULL) return CFG_RC_ERROR_NULLPTR;
     if(idx >= cfg->count) return CFG_RC_ERROR_RANGE;
 
     *entry = (cfg->entries[idx]);
