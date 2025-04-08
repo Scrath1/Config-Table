@@ -21,6 +21,7 @@ file(GLOB config_table_src
 )
 
 add_executable(basic_example examples/basic-example.cpp ${config_table_src})
+add_executable(struct_example examples/example_with_config_struct.cpp ${config_table_src})
 add_executable(run_unit_tests test/main.cpp
         test/test_config_table.cpp
         ${config_table_src}

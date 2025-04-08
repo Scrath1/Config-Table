@@ -223,9 +223,11 @@ CfgRet_t config_parseKVStr(ConfigTable_t* cfg, char* str, uint32_t len) {
         value_str_size--;
     }
     // trim trailing whitespace of value string
-    while(isspace(value_str[value_str_size-2])) {
-        value_str[value_str_size-2] = '\0';
-        value_str_size--;
+    if(value_str_size >= 2) {
+        while(isspace(value_str[value_str_size-2])) {
+            value_str[value_str_size-2] = '\0';
+            value_str_size--;
+        }
     }
     switch(entry->type) {
         default:

@@ -215,6 +215,12 @@ TEST_F(Config_Table_Test, KeyValueParsingTest) {
     EXPECT_STREQ("valid string", parsed_str);
     char oversized_str[] = "string: This string is too long for the current character limit";
     EXPECT_EQ(CFG_RC_ERROR_TOO_LARGE, config_parseKVStr(&config_table, oversized_str, sizeof(oversized_str)));
+    // Empty value string
+    memset(parsed_str, 0, MAX_STRING_LEN);
+    char empty_str[] = "string:";
+    EXPECT_EQ(CFG_RC_SUCCESS, config_parseKVStr(&config_table, empty_str, sizeof(empty_str)));
+    EXPECT_EQ(CFG_RC_SUCCESS, config_getStringByKey(&config_table, "string", parsed_str, sizeof(parsed_str)));
+    EXPECT_STREQ("", parsed_str);
 
     // bool
     // Test all configurations for strings
